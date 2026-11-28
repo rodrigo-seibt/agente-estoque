@@ -1,0 +1,228 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "32db6feb-39d2-47fc-8684-faa631553853",
+              "name": "=nivel",
+              "value": "ALERTA",
+              "type": "string"
+            },
+            {
+              "id": "76d8c337-e202-43c6-b4c4-483dcaffbee0",
+              "name": "=codigo",
+              "value": "={{ $json.body.codigo }}",
+              "type": "string"
+            },
+            {
+              "id": "57c28d98-aa89-450e-bd8e-8ca64c495d9a",
+              "name": "=situacao",
+              "value": "={{ $json.body.situacao}}",
+              "type": "string"
+            },
+            {
+              "id": "215591cf-c01d-4b48-a577-338ee86889c9",
+              "name": "=mensagem",
+              "value": "=ALERTA: {{ $json.body.nome }} ({{ $json.body.codigo }}) está {{ $json.body.situacao }}: {{ $json.body.quantidade_atual }} {{ $json.body.unidade }} para um mínimo de {{ $json.body.estoque_minimo }}.",
+              "type": "string"
+            },
+            {
+              "id": "a33e259a-5e4a-41d4-8547-606b23dc95c8",
+              "name": "=processado_por",
+              "value": "n8n",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        16,
+        -80
+      ],
+      "id": "693837cf-99c8-420d-a407-64a6117a2247",
+      "name": "Montar alerta"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0f3cc029-06f7-4810-8eff-7e5b483ad820",
+              "name": "nivel",
+              "value": "NORMAL",
+              "type": "string"
+            },
+            {
+              "id": "f183acee-ec73-4c01-8120-58877485ad43",
+              "name": "codigo",
+              "value": "={{ $json.body.codigo }}",
+              "type": "string"
+            },
+            {
+              "id": "556a67d2-242e-4ca0-acf0-9375cb6dfdba",
+              "name": "=situacao",
+              "value": "= {{ $json.body.situacao }}",
+              "type": "string"
+            },
+            {
+              "id": "dbc61c8f-0e87-4c29-9070-111166eff40c",
+              "name": "=mensagem",
+              "value": "=NORMAL: {{ $json.body.nome }} ({{ $json.body.codigo }}) está com estoque {{ $json.body.situacao }}: {{ $json.body.quantidade_atual }} {{ $json.body.unidade }} (mínimo {{ $json.body.estoque_minimo }}).",
+              "type": "string"
+            },
+            {
+              "id": "75e40967-b299-4e28-a911-324ebead69fe",
+              "name": "processado_por",
+              "value": "n8n",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        16,
+        96
+      ],
+      "id": "300e948c-7202-42b9-b324-d21d0f0e6a64",
+      "name": "Montar normal"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "estoque-alerta",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.2,
+      "position": [
+        -528,
+        0
+      ],
+      "id": "e0199c9a-187f-4a99-b338-86a7e2b4de31",
+      "name": "Receber análise",
+      "webhookId": "bf426a94-6e90-4a33-8bd4-d09550f64e7f"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 4
+          },
+          "conditions": [
+            {
+              "id": "f8b5b230-8bc6-464a-9e41-65ee05f5c750",
+              "leftValue": "={{ $json.body.situacao }}",
+              "rightValue": "disponivel",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.4,
+      "position": [
+        -240,
+        0
+      ],
+      "id": "9cebb8f1-7c3c-403b-a49b-301638eeb8c1",
+      "name": "Exige atenção?"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        288,
+        0
+      ],
+      "id": "a48a3257-2e2f-45a4-98ed-4ee3ad55e98a",
+      "name": "Resultado"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Montar alerta": {
+      "main": [
+        [
+          {
+            "node": "Resultado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Montar normal": {
+      "main": [
+        [
+          {
+            "node": "Resultado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Receber análise": {
+      "main": [
+        [
+          {
+            "node": "Exige atenção?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Exige atenção?": {
+      "main": [
+        [
+          {
+            "node": "Montar alerta",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Montar normal",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "6206faf5-babf-4dff-8182-1c603a1d02da",
+  "meta": {
+    "instanceId": "55ee50e9572a807f178358513b1c7cbc545b1f2e5bf9ae37c3e30c8b0c61ad12"
+  },
+  "nodeGroups": [],
+  "id": "6k3c1LXILMooHbeb",
+  "tags": []
+}
